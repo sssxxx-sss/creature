@@ -1,4 +1,5 @@
 const shapes = [
+    // Original working shapes
     { m: 3, n1: 0.3, n2: 0.3, n3: 0.3, a: 1, b: 1 },
     { m: 3, n1: 0.4, n2: 0.4, n3: 0.4, a: 1, b: 1 },
     { m: 3, n1: 0.5, n2: 0.5, n3: 0.5, a: 1, b: 1 },
@@ -8,6 +9,32 @@ const shapes = [
     { m: 5, n1: 0.5, n2: 0.5, n3: 0.5, a: 1, b: 1 },
     { m: 6, n1: 0.3, n2: 0.3, n3: 0.3, a: 1, b: 1 },
     { m: 6, n1: 0.5, n2: 0.5, n3: 0.5, a: 1, b: 1 },
+
+    // Spikier additions
+    { m: 3, n1: 0.2, n2: 0.2, n3: 0.2, a: 1, b: 1 },
+    { m: 4, n1: 0.2, n2: 0.2, n3: 0.2, a: 1, b: 1 },
+    { m: 5, n1: 0.2, n2: 0.2, n3: 0.2, a: 1, b: 1 },
+    { m: 6, n1: 0.2, n2: 0.2, n3: 0.2, a: 1, b: 1 },
+    { m: 7, n1: 0.2, n2: 0.2, n3: 0.2, a: 1, b: 1 },
+    { m: 8, n1: 0.2, n2: 0.2, n3: 0.2, a: 1, b: 1 },
+    { m: 3, n1: 0.15, n2: 0.15, n3: 0.15, a: 1, b: 1 },
+    { m: 4, n1: 0.15, n2: 0.15, n3: 0.15, a: 1, b: 1 },
+    { m: 5, n1: 0.15, n2: 0.15, n3: 0.15, a: 1, b: 1 },
+    { m: 6, n1: 0.15, n2: 0.15, n3: 0.15, a: 1, b: 1 },
+    { m: 3, n1: 0.1, n2: 0.1, n3: 0.1, a: 1, b: 1 },
+    { m: 4, n1: 0.1, n2: 0.1, n3: 0.1, a: 1, b: 1 },
+    { m: 5, n1: 0.1, n2: 0.1, n3: 0.1, a: 1, b: 1 },
+    { m: 6, n1: 0.1, n2: 0.1, n3: 0.1, a: 1, b: 1 },
+    { m: 7, n1: 0.1, n2: 0.1, n3: 0.1, a: 1, b: 1 },
+    { m: 8, n1: 0.1, n2: 0.1, n3: 0.1, a: 1, b: 1 },
+    { m: 3, n1: 0.3, n2: 0.1, n3: 0.3, a: 1, b: 1 },
+    { m: 4, n1: 0.3, n2: 0.1, n3: 0.3, a: 1, b: 1 },
+    { m: 5, n1: 0.1, n2: 0.3, n3: 0.1, a: 1, b: 1 },
+    { m: 6, n1: 0.3, n2: 0.1, n3: 0.3, a: 1, b: 1 },
+    { m: 3, n1: 0.3, n2: 0.3, n3: 0.3, a: 0.8, b: 1.2 },
+    { m: 4, n1: 0.3, n2: 0.3, n3: 0.3, a: 1.2, b: 0.8 },
+    { m: 5, n1: 0.2, n2: 0.2, n3: 0.2, a: 0.7, b: 1.3 },
+    { m: 6, n1: 0.2, n2: 0.2, n3: 0.2, a: 1.3, b: 0.7 },
 ];
 
 function shuffle(array) {
@@ -25,9 +52,14 @@ const shapeElement = document.getElementById('shape');
 
 function superformula(theta, params) {
     const { m, n1, n2, n3, a, b } = params;
-    const t1 = Math.pow(Math.abs(Math.cos(m * theta / 4) / a), n2);
-    const t2 = Math.pow(Math.abs(Math.sin(m * theta / 4) / b), n3);
-    const r = Math.pow(t1 + t2, -1 / n1);
+    const cosVal = Math.cos(m * theta / 4) / a;
+    const sinVal = Math.sin(m * theta / 4) / b;
+    const t1 = Math.pow(Math.abs(cosVal), n2);
+    const t2 = Math.pow(Math.abs(sinVal), n3);
+    const sum = t1 + t2;
+    if (sum === 0) return 1;
+    const r = Math.pow(sum, -1 / n1);
+    if (!isFinite(r) || isNaN(r)) return 1;
     return r;
 }
 
@@ -35,16 +67,20 @@ function generatePath(params) {
     const points = 360;
     const pathPoints = [];
     let maxR = 0;
+
     for (let i = 0; i <= points; i++) {
         const theta = (2 * Math.PI * i) / points;
         const r = superformula(theta, params);
-        if (isFinite(r) && !isNaN(r)) {
-            maxR = Math.max(maxR, r);
-            pathPoints.push({ x: r * Math.cos(theta), y: r * Math.sin(theta) });
-        }
+        maxR = Math.max(maxR, r);
+        pathPoints.push({ x: r * Math.cos(theta), y: r * Math.sin(theta) });
     }
+
     const scale = maxR > 0 ? 1 / maxR : 1;
-    const normalized = pathPoints.map(p => ({ x: p.x * scale, y: p.y * scale }));
+    const normalized = pathPoints.map(p => ({
+        x: p.x * scale,
+        y: p.y * scale
+    }));
+
     let d = `M ${normalized[0].x.toFixed(4)} ${normalized[0].y.toFixed(4)}`;
     for (let i = 1; i < normalized.length; i++) {
         d += ` L ${normalized[i].x.toFixed(4)} ${normalized[i].y.toFixed(4)}`;
@@ -61,13 +97,17 @@ let lastTouchTime = 0;
 function handleTap() {
     if (tapLocked) return;
     tapLocked = true;
+
     currentIndex = (currentIndex + 1) % shuffled.length;
+
     if (currentIndex === 0) {
         const newOrder = shuffle(shapes);
         shuffled.length = 0;
         newOrder.forEach(s => shuffled.push(s));
     }
+
     shapeElement.setAttribute('d', generatePath(shuffled[currentIndex]));
+
     setTimeout(() => { tapLocked = false; }, 100);
 }
 
